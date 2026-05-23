@@ -43,12 +43,44 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Ensure Cloudflare Pages project exists
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT_NAME: dedebayer
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT_NAME")
+
+          if [ "$STATUS" = "200" ]; then
+            echo "✓ Project '$PROJECT_NAME' already exists"
+          elif [ "$STATUS" = "404" ]; then
+            echo "Project '$PROJECT_NAME' not found, creating..."
+            RESPONSE=$(curl -s -X POST \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects" \
+              -d '{"name":"'"$PROJECT_NAME"'","production_branch":"main"}')
+            SUCCESS=$(echo "$RESPONSE" | grep -o '"success":[^,]*' | head -1)
+            if echo "$SUCCESS" | grep -q "true"; then
+              echo "✓ Created project '$PROJECT_NAME'"
+            else
+              echo "✗ Failed to create project:"
+              echo "$RESPONSE"
+              exit 1
+            fi
+          else
+            echo "✗ Unexpected response (HTTP $STATUS)"
+            exit 1
+          fi
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=dedebayer
+          command: pages deploy dist --project-name=dedebayer --branch=main
 
   deploy-docker:
     needs: build
