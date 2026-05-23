@@ -1,6 +1,3 @@
-# Cloudflare Pages 配置
 name = "dedebayer"
 compatibility_date = "2025-05-01"
-
-[site]
-bucket = "./dist"
+pages_build_output_dir = "./dist"
