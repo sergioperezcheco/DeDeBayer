@@ -255,6 +255,43 @@ npm run preview
 
 Push 到 main 即自动部署。
 
+#### CI/CD 配置详细步骤
+
+**第一步：获取 Cloudflare 凭证**
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 获取 Account ID：
+   - 进入任意域名 → 右侧栏 → **Account ID**（32 位十六进制字符串）
+   - 或者：首页 → 左下角 → Account ID
+3. 创建 API Token：
+   - 进入 [API Tokens 页面](https://dash.cloudflare.com/profile/api-tokens)
+   - 点击 **Create Token**
+   - 选择模板 **Edit Cloudflare Workers** 或自定义：
+     - Permissions: `Account` → `Cloudflare Pages` → `Edit`
+   - 创建后复制 Token（只显示一次）
+
+**第二步：在 GitHub 仓库添加 Secrets**
+
+1. 打开仓库页面 → **Settings** → 左侧 **Secrets and variables** → **Actions**
+2. 点击 **New repository secret**，添加：
+   - Name: `CLOUDFLARE_API_TOKEN`，Value: 上面创建的 API Token
+   - Name: `CLOUDFLARE_ACCOUNT_ID`，Value: 你的 Account ID
+
+**第三步：触发部署**
+
+- **自动触发**：Push 代码到 `main` 分支即自动触发
+- **手动触发**：进入仓库 → **Actions** → 选择 workflow → **Run workflow**
+- **PR 触发**：向 `main` 提交 Pull Request 时会自动构建（但不部署）
+
+**第四步：Docker 镜像（自动）**
+
+Docker 镜像会自动推送到 GitHub Container Registry (ghcr.io)，无需额外配置。`GITHUB_TOKEN` 是 Actions 自动提供的。
+
+构建完成后可以这样拉取：
+```bash
+docker pull ghcr.io/sergioperezcheco/dedebayer:latest
+```
+
 ### Docker
 
 ```bash
@@ -286,19 +323,19 @@ docker run -p 4321:4321 ghcr.io/sergioperezcheco/dedebayer:latest
 
 ## 参考文献
 
-1. **Bayer, B. E.** (1976). *Color imaging array*. U.S. Patent 3,971,065.
+1. **Bayer, B. E.** (1976). *Color imaging array*. U.S. Patent 3,971,065. [Google Patents](https://patents.google.com/patent/US3971065A)
 
-2. **Hamilton, J. F., & Adams, J. E.** (1997). *Adaptive color plan interpolation in single sensor color electronic camera*. U.S. Patent 5,629,734. — 边缘导向插值的奠基性专利。
+2. **Hamilton, J. F., & Adams, J. E.** (1997). *Adaptive color plan interpolation in single sensor color electronic camera*. U.S. Patent 5,629,734. [Google Patents](https://patents.google.com/patent/US5629734A) — 边缘导向插值的奠基性专利。
 
-3. **Kimmel, R.** (1999). *Demosaicing: Image reconstruction from color CCD samples*. IEEE Transactions on Image Processing, 8(9), 1221-1228. — 提出利用色调平滑性的解拜耳方法。
+3. **Kimmel, R.** (1999). *Demosaicing: Image reconstruction from color CCD samples*. IEEE Transactions on Image Processing, 8(9), 1221-1228. [IEEE Xplore](https://ieeexplore.ieee.org/document/784434) — 提出利用色调平滑性的解拜耳方法。
 
-4. **Malvar, H. S., He, L., & Cutler, R.** (2004). *High-quality linear interpolation for demosaicing of Bayer-patterned color images*. IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP), vol. 3, pp. 485-488. — 微软研究院提出的 5×5 卷积核方法。[PDF](https://www.microsoft.com/en-us/research/publication/high-quality-linear-interpolation-for-demosaicing-of-bayer-patterned-color-images/)
+4. **Malvar, H. S., He, L., & Cutler, R.** (2004). *High-quality linear interpolation for demosaicing of Bayer-patterned color images*. IEEE ICASSP, vol. 3, pp. 485-488. [Microsoft Research PDF](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/Dem0saicing_ICASSP04.pdf) — 微软研究院提出的 5×5 卷积核方法。
 
-5. **Gunturk, B. K., Glotzbach, J., Altunbasak, Y., Schafer, R. W., & Mersereau, R. M.** (2005). *Demosaicking: Color filter array interpolation*. IEEE Signal Processing Magazine, 22(1), 44-54. — 解拜耳算法的综述论文。
+5. **Gunturk, B. K., Glotzbach, J., Altunbasak, Y., Schafer, R. W., & Mersereau, R. M.** (2005). *Demosaicking: Color filter array interpolation*. IEEE Signal Processing Magazine, 22(1), 44-54. [IEEE Xplore](https://ieeexplore.ieee.org/document/1407714) — 解拜耳算法的综述论文。
 
-6. **Menon, D., Andriani, S., & Calvagno, G.** (2007). *Demosaicing with directional filtering and a posteriori decision*. IEEE Transactions on Image Processing, 16(1), 132-141. — 更先进的方向性滤波方法。
+6. **Menon, D., Andriani, S., & Calvagno, G.** (2007). *Demosaicing with directional filtering and a posteriori decision*. IEEE Transactions on Image Processing, 16(1), 132-141. [IEEE Xplore](https://ieeexplore.ieee.org/document/4032803) — 更先进的方向性滤波方法。
 
-7. **Li, X., Gunturk, B., & Zhang, L.** (2008). *Image demosaicing: A systematic survey*. Proceedings of SPIE, vol. 6822. — 全面的解拜耳算法调研。
+7. **Li, X., Gunturk, B., & Zhang, L.** (2008). *Image demosaicing: A systematic survey*. Proceedings of SPIE, vol. 6822. [SPIE](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/6822/68221J/Image-demosaicing--a-systematic-survey/10.1117/12.766768.short) — 全面的解拜耳算法调研。
 
 ---
 
