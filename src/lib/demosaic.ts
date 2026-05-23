@@ -278,34 +278,49 @@ export function demosaicSmoothHue(bayer: BayerResult): ImageData {
   }
 
   // 第二步：利用色调比率恢复 R 和 B
+  // 在 G 太小时回退到色差方法（避免除零）
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
       const idx = (row * width + col) * 4
       const ch = getChannelAt(row, col, pattern)
       const g = green[row * width + col]!
 
-      output.data[idx + 1] = clamp(Math.round(g)) // G
+      output.data[idx + 1] = clamp(Math.round(g))
 
-      // 对 R 和 B 通道，计算色调比率并插值
       for (const targetCh of [0, 2] as const) {
         if (ch === targetCh) {
           output.data[idx + targetCh] = get(row, col)
         } else {
-          // 在邻域中找同色像素，计算 ratio = value / G
+          // 收集邻域同色像素的 (target, neighborG) 对
           let ratioSum = 0, ratioCount = 0
+          let diffSum = 0, diffCount = 0
           for (let dr = -1; dr <= 1; dr++) {
             for (let dc = -1; dc <= 1; dc++) {
               if (getChannelAt(row + dr, col + dc, pattern) === targetCh) {
                 const neighborG = green[(row + dr) * width + (col + dc)]!
-                if (neighborG > 1) {
-                  ratioSum += get(row + dr, col + dc) / neighborG
+                const neighborVal = get(row + dr, col + dc)
+                // 色差永远可计算
+                diffSum += neighborVal - neighborG
+                diffCount++
+                // 色调比率仅在 G 足够大时计算
+                if (neighborG > 8) {
+                  ratioSum += neighborVal / neighborG
                   ratioCount++
                 }
               }
             }
           }
-          const ratio = ratioCount > 0 ? ratioSum / ratioCount : 1
-          output.data[idx + targetCh] = clamp(Math.round(g * ratio))
+
+          // 优先使用比率法，G 过小时回退到色差法
+          if (ratioCount > 0 && g > 8) {
+            const ratio = ratioSum / ratioCount
+            output.data[idx + targetCh] = clamp(Math.round(g * ratio))
+          } else if (diffCount > 0) {
+            const diff = diffSum / diffCount
+            output.data[idx + targetCh] = clamp(Math.round(g + diff))
+          } else {
+            output.data[idx + targetCh] = clamp(Math.round(g))
+          }
         }
       }
 

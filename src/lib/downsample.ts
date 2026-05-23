@@ -16,9 +16,12 @@ export function downsampleBayer(bayer: BayerResult, maxSize: number): BayerResul
     return bayer // 不需要下采样
   }
 
-  // 计算缩放因子（必须是 2 的倍数）
+  // 计算缩放因子（必须是 2 的倍数以保持 Bayer 模式）
+  // 思路：每 blockSize×blockSize 的块下采样为 2x2 Bayer 块（缩小 blockSize/2 倍）
   const rawScale = Math.max(width, height) / maxSize
-  const blockSize = Math.max(2, Math.ceil(rawScale / 2) * 2) // 确保偶数
+  // blockSize 是偶数，且 blockSize/2 至少满足缩放比
+  const halfBlock = Math.max(1, Math.ceil(rawScale))
+  const blockSize = halfBlock * 2
 
   const dstW = Math.floor(width / blockSize) * 2
   const dstH = Math.floor(height / blockSize) * 2
@@ -26,7 +29,6 @@ export function downsampleBayer(bayer: BayerResult, maxSize: number): BayerResul
   if (dstW < 4 || dstH < 4) return bayer
 
   const dst = new Uint8ClampedArray(dstW * dstH)
-  const halfBlock = blockSize / 2
 
   for (let dy = 0; dy < dstH; dy += 2) {
     for (let dx = 0; dx < dstW; dx += 2) {
