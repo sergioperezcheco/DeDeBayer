@@ -37,12 +37,14 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
   // 放大演示 canvas
   const demoRef = useRef<HTMLCanvasElement>(null)
 
-  // 初始化裁剪位置到图片中心
+  // 初始化裁剪位置到图片中心（必须偶数对齐 Bayer 2x2 块）
   useEffect(() => {
     const cx = Math.floor(bayer.width / 2) - CROP_SIZE / 2
     const cy = Math.floor(bayer.height / 2) - CROP_SIZE / 2
-    setCropX(Math.max(0, Math.min(cx, bayer.width - CROP_SIZE)))
-    setCropY(Math.max(0, Math.min(cy, bayer.height - CROP_SIZE)))
+    const x = Math.max(0, Math.min(cx, bayer.width - CROP_SIZE))
+    const y = Math.max(0, Math.min(cy, bayer.height - CROP_SIZE))
+    setCropX(x - (x % 2))
+    setCropY(y - (y % 2))
   }, [bayer])
 
   // 裁剪区域的 Bayer 子集
@@ -114,7 +116,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
       for (let c = 0; c < w; c++) {
         const x = c * pw
         const y = r * pw
-        const ch = getChannelAt(r + cropY, c + cropX, pattern)
+        const ch = getChannelAt(r, c, pattern)
         const val = mosaic[r * w + c]!
 
         if (step === 'mosaic') {
@@ -208,10 +210,13 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
     const my = e.clientY - rect.top
     const scaleX = bayer.width / canvas.width
     const scaleY = bayer.height / canvas.height
-    const newX = Math.round(mx * scaleX - CROP_SIZE / 2)
-    const newY = Math.round(my * scaleY - CROP_SIZE / 2)
-    setCropX(Math.max(0, Math.min(newX, bayer.width - CROP_SIZE)))
-    setCropY(Math.max(0, Math.min(newY, bayer.height - CROP_SIZE)))
+    let newX = Math.round(mx * scaleX - CROP_SIZE / 2)
+    let newY = Math.round(my * scaleY - CROP_SIZE / 2)
+    newX = Math.max(0, Math.min(newX, bayer.width - CROP_SIZE))
+    newY = Math.max(0, Math.min(newY, bayer.height - CROP_SIZE))
+    // 强制偶数对齐
+    setCropX(newX - (newX % 2))
+    setCropY(newY - (newY % 2))
   }, [bayer])
 
   const handlePlayDemo = () => {
