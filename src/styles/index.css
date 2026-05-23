@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  --color-bayer-red: #e74c3c;
+  --color-bayer-green: #2ecc71;
+  --color-bayer-blue: #3498db;
+}
+
+body {
+  @apply bg-gray-950 text-gray-100 min-h-screen;
+}

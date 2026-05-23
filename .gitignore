@@ -1,0 +1,5 @@
+node_modules
+dist
+*.NEF
+*.nef
+.DS_Store
