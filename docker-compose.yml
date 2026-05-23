@@ -2,5 +2,5 @@ services:
   dedebayer:
     build: .
     ports:
-      - "4321:4321"
+      - "4321:80"
     restart: unless-stopped

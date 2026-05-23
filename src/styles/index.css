@@ -9,9 +9,18 @@
 }
 
 body {
-  @apply bg-white text-gray-900 min-h-screen transition-colors duration-300;
+  @apply bg-gray-50 text-gray-900 min-h-screen transition-colors duration-200;
 }
 
 body.dark {
   @apply bg-gray-950 text-gray-100;
+}
+
+/* 通用组件暗色适配 */
+select, input[type="range"] {
+  color-scheme: light;
+}
+
+.dark select, .dark input[type="range"] {
+  color-scheme: dark;
 }

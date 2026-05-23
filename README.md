@@ -71,7 +71,7 @@
 
 为了减少摩尔纹和伪色，大部分数码相机在传感器前还放置了一片**光学低通滤波器**（Anti-Aliasing Filter）。它轻微模糊入射光，使得高频细节不会超过 Bayer 阵列的奈奎斯特频率。代价是牺牲了一些锐度。
 
-近年来一些相机（如 Nikon D800E、Pentax K-5 IIs）取消了 OLPF，依赖更先进的解拜耳算法来处理伪色问题。
+近年来一些相机（如 Nikon Z9、Sony A7R V、Fujifilm X-T5）取消了光学低通滤波器，依赖更先进的解拜耳算法和机内处理来抑制伪色问题。
 
 ---
 
@@ -171,6 +171,44 @@
 | Web Worker | 后台计算（可选） |
 
 纯前端，零后端依赖，适合部署到任何静态托管平台。
+
+---
+
+## 项目结构
+
+```
+DeDeBayer/
+├── src/
+│   ├── components/
+│   │   ├── CanvasView.tsx        # 通用 Canvas 图像显示组件
+│   │   ├── DemosaicPlayer.tsx    # 解拜耳演示交互组件（局部放大 + 动画）
+│   │   ├── ImageUploader.tsx     # 图片/RAW 上传组件
+│   │   └── ImageViewer.tsx       # 全屏图片查看器（缩放/平移/旋转）
+│   ├── lib/
+│   │   ├── bayer.ts              # Bayer CFA 核心：RGB→马赛克、可视化
+│   │   ├── demosaic.ts           # 5 种解拜耳算法实现
+│   │   ├── tiff-parser.ts        # TIFF/NEF/CR2 结构解析器
+│   │   ├── raw-loader.ts         # RAW 文件加载（提取内嵌 JPEG）
+│   │   ├── animation.ts          # 动画帧生成
+│   │   ├── downsample.ts         # Bayer 感知下采样
+│   │   ├── download.ts           # PNG 导出
+│   │   └── theme.ts              # 明暗主题管理
+│   ├── styles/
+│   │   └── index.css             # Tailwind 入口 + 主题配置
+│   ├── App.tsx                   # 主应用组件
+│   └── main.tsx                  # 入口
+├── public/
+│   └── vite.svg                  # Favicon（Bayer 模式图标）
+├── .github/workflows/
+│   └── deploy.yml                # CI/CD：构建 + Cloudflare Pages + Docker
+├── Dockerfile                    # 多阶段构建（Node + Nginx）
+├── docker-compose.yml            # 一键启动
+├── nginx.conf                    # Nginx 配置（SPA + 缓存）
+├── wrangler.toml                 # Cloudflare Pages 配置
+├── vite.config.ts                # Vite 配置
+├── tsconfig.json                 # TypeScript 配置
+└── package.json
+```
 
 ---
 

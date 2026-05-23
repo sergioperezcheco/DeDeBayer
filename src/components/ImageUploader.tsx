@@ -129,7 +129,7 @@ export function ImageUploader({ onImageLoaded, onRawLoaded }: Props) {
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-lg">
       {!loading && (
-        <div className="w-full bg-gray-900/50 border border-gray-800 rounded-lg p-3">
+        <div className="w-full bg-gray-100 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
           <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 block">
             处理尺寸
           </label>
@@ -141,7 +141,7 @@ export function ImageUploader({ onImageLoaded, onRawLoaded }: Props) {
                 className={`flex-1 px-3 py-2 rounded text-xs font-medium transition-colors ${
                   sizeOption === opt.id
                     ? 'bg-green-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
                 {opt.label}
@@ -162,8 +162,8 @@ export function ImageUploader({ onImageLoaded, onRawLoaded }: Props) {
                    flex flex-col items-center justify-center gap-3
                    transition-colors min-h-64 ${
                      loading
-                       ? 'border-yellow-500 bg-yellow-900/10 cursor-wait'
-                       : 'border-gray-600 hover:border-green-500 hover:bg-gray-900/50 cursor-pointer'
+                       ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10 cursor-wait'
+                       : 'border-gray-300 dark:border-gray-600 hover:border-green-500 hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer'
                    }`}
       >
         {loading ? (

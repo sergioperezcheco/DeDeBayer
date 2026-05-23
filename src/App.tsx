@@ -185,7 +185,7 @@ export default function App() {
             <div className="flex flex-col items-center gap-8 py-12">
               <div className="text-center max-w-md">
                 <h2 className="text-xl font-semibold mb-2">上传一张图片</h2>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                   支持 RAW 文件（NEF/CR2/ARW/DNG 等）和普通图片（JPEG/PNG）。
                   上传后可以观察 Bayer 滤色阵列的样貌，以及多种解拜耳算法如何还原彩色图像。
                 </p>
@@ -198,10 +198,10 @@ export default function App() {
           ) : (
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   {isRaw ? '📷' : '🖼️'} {fileName} · {bayer.width}×{bayer.height} · {pattern}
                   {isRaw && rawMeta && (
-                    <span className="ml-2 text-gray-600">
+                    <span className="ml-2 text-gray-500 dark:text-gray-600">
                       {rawMeta.make} {rawMeta.model} · {rawMeta.format}
                       {rawMeta.sensorWidth > 0 && (
                         <> · 传感器 {rawMeta.sensorWidth}×{rawMeta.sensorHeight}</>
@@ -209,26 +209,26 @@ export default function App() {
                     </span>
                   )}
                   {isRaw && (
-                    <span className="ml-2 inline-block px-2 py-0.5 bg-green-900/50 text-green-400 text-xs rounded">
+                    <span className="ml-2 inline-block px-2 py-0.5 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 text-xs rounded">
                       RAW 内嵌预览
                     </span>
                   )}
                   {!isRaw && (
-                    <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-900/50 text-yellow-400 text-xs rounded">
+                    <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 text-xs rounded">
                       模拟 Bayer
                     </span>
                   )}
                 </div>
                 <button
                   onClick={handleReset}
-                  className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                  className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 >
                   ← 重新选择图片
                 </button>
               </div>
 
               {isRaw && rawMeta && rawMeta.sensorWidth > rawMeta.previewWidth && (
-                <div className="bg-blue-950/30 border border-blue-900/50 rounded-lg px-4 py-2 text-xs text-blue-300">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-lg px-4 py-2 text-xs text-blue-700 dark:text-blue-300">
                   ℹ️ 真实传感器分辨率为 {rawMeta.sensorWidth}×{rawMeta.sensorHeight}，
                   RAW 文件中嵌入的最大 JPEG 预览为 {rawMeta.previewWidth}×{rawMeta.previewHeight}（相机决定）。
                   解码 14bit 原始传感器数据需要 LibRaw 等专门的解码库。
@@ -236,7 +236,7 @@ export default function App() {
               )}
 
               <details className="group">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-300">
+                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                   {isRaw ? '展开查看 RAW 内嵌的完整图像' : '展开查看原图'}
                 </summary>
                 <div className="mt-3 flex justify-center">
@@ -251,15 +251,15 @@ export default function App() {
                 </div>
               </details>
 
-              <div className="flex gap-1 bg-gray-900 rounded-lg p-1 self-center">
+              <div className="flex gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 self-center">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-gray-700 text-white'
-                        : 'text-gray-400 hover:text-gray-200'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                     }`}
                   >
                     {tab.label}

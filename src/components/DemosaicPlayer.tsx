@@ -240,7 +240,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
               setStep('mosaic')
               setAnimProgress(0)
             }}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:border-green-500"
           >
             {ALGORITHMS.map((a) => (
@@ -292,7 +292,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
           <canvas
             ref={thumbRef}
             onClick={handleThumbClick}
-            className="rounded border border-gray-700 cursor-crosshair hover:border-green-500 transition-colors"
+            className="rounded border border-gray-300 dark:border-gray-700 cursor-crosshair hover:border-green-500 transition-colors"
           />
           <span className="text-xs text-gray-600">
             区域: ({cropX}, {cropY}) · {CROP_SIZE}×{CROP_SIZE}px

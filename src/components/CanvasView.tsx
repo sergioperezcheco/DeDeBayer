@@ -34,12 +34,13 @@ export function CanvasView({ imageData, label, className = '', downloadName, onI
     <div className={`flex flex-col items-center gap-2 ${className}`}>
       {label && (
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-400">{label}</span>
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</span>
           {downloadName && imageData && (
             <button
               onClick={handleDownload}
-              className="text-xs px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700
-                         text-gray-300 rounded transition-colors flex items-center gap-1"
+              className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
+                         border border-gray-300 dark:border-gray-700
+                         text-gray-600 dark:text-gray-300 rounded transition-colors flex items-center gap-1"
               title="下载为 PNG"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -54,8 +55,8 @@ export function CanvasView({ imageData, label, className = '', downloadName, onI
       <canvas
         ref={canvasRef}
         onClick={onImageClick}
-        className={`max-w-full rounded-lg shadow-lg border border-gray-800 ${
-          onImageClick ? 'cursor-zoom-in hover:border-gray-600 transition-colors' : ''
+        className={`max-w-full rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 ${
+          onImageClick ? 'cursor-zoom-in hover:border-gray-400 dark:hover:border-gray-600 transition-colors' : ''
         }`}
         style={{
           imageRendering: 'pixelated',
