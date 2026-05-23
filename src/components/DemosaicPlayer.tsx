@@ -15,22 +15,33 @@ const ALGORITHMS: { id: DemosaicAlgorithm; label: string; desc: string }[] = [
   { id: 'edge', label: '边缘导向', desc: 'Hamilton & Adams 1997，根据梯度方向选择插值方向' },
 ]
 
-/** 裁剪区域大小 */
-const CROP_SIZE = 200
-/** 每个像素的显示大小 */
-const PIXEL_SIZE = 4
+/** 缩放档位：每个档位决定每个 Bayer 像素在画布上占多少屏幕像素 */
+const ZOOM_LEVELS = [
+  { label: '100%', pixelSize: 1, cropSize: 800 },
+  { label: '200%', pixelSize: 2, cropSize: 400 },
+  { label: '400%', pixelSize: 4, cropSize: 200 },
+  { label: '800%', pixelSize: 8, cropSize: 100 },
+  { label: '1600%', pixelSize: 16, cropSize: 50 },
+] as const
+
+type ZoomLevel = typeof ZOOM_LEVELS[number]
 
 type DemoStep = 'mosaic' | 'interpolating' | 'result'
 
 export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
   const [algorithm, setAlgorithm] = useState<DemosaicAlgorithm>('bilinear')
   const [step, setStep] = useState<DemoStep>('mosaic')
+  const [zoomIdx, setZoomIdx] = useState(2) // 默认 400%
   const [cropX, setCropX] = useState(0)
   const [cropY, setCropY] = useState(0)
   const [animProgress, setAnimProgress] = useState(0)
   const [playing, setPlaying] = useState(false)
   const animRef = useRef<number | null>(null)
   const startRef = useRef<number | null>(null)
+
+  const zoom: ZoomLevel = ZOOM_LEVELS[zoomIdx]!
+  const CROP_SIZE = Math.min(zoom.cropSize, bayer.width, bayer.height)
+  const PIXEL_SIZE = zoom.pixelSize
 
   // 缩略图 canvas 用于选择区域
   const thumbRef = useRef<HTMLCanvasElement>(null)
@@ -45,7 +56,19 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
     const y = Math.max(0, Math.min(cy, bayer.height - CROP_SIZE))
     setCropX(x - (x % 2))
     setCropY(y - (y % 2))
-  }, [bayer])
+  }, [bayer, CROP_SIZE])
+
+  // 当 cropX/cropY 因为图像变小越界时，钳制到合法范围
+  useEffect(() => {
+    setCropX((x) => {
+      const clamped = Math.max(0, Math.min(x, bayer.width - CROP_SIZE))
+      return clamped - (clamped % 2)
+    })
+    setCropY((y) => {
+      const clamped = Math.max(0, Math.min(y, bayer.height - CROP_SIZE))
+      return clamped - (clamped % 2)
+    })
+  }, [CROP_SIZE, bayer.width, bayer.height])
 
   // 裁剪区域的 Bayer 子集
   const cropBayer = useMemo((): BayerResult => {
@@ -62,7 +85,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
       }
     }
     return { mosaic, width: w, height: h, pattern: bayer.pattern }
-  }, [bayer, cropX, cropY])
+  }, [bayer, cropX, cropY, CROP_SIZE])
 
   // 解拜耳结果
   const demosaiced = useMemo(
@@ -74,7 +97,6 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
   useEffect(() => {
     if (!thumbRef.current) return
     const canvas = thumbRef.current
-    // 缩略图最大 300px
     const scale = Math.min(300 / bayer.width, 200 / bayer.height, 1)
     const tw = Math.round(bayer.width * scale)
     const th = Math.round(bayer.height * scale)
@@ -96,7 +118,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
       cropX * scale, cropY * scale,
       CROP_SIZE * scale, CROP_SIZE * scale
     )
-  }, [bayer, cropX, cropY])
+  }, [bayer, cropX, cropY, CROP_SIZE])
 
   // 绘制放大演示
   useEffect(() => {
@@ -108,74 +130,99 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
     canvas.width = w * pw
     canvas.height = h * pw
     const ctx = canvas.getContext('2d')!
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     const { mosaic, pattern } = cropBayer
 
+    // 高效路径：先把每个 Bayer 像素的颜色画到原始尺寸的离屏 ImageData
+    const small = ctx.createImageData(w, h)
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
-        const x = c * pw
-        const y = r * pw
+        const idx = (r * w + c) * 4
         const ch = getChannelAt(r, c, pattern)
         const val = mosaic[r * w + c]!
+        let rr = 0, gg = 0, bb = 0
 
         if (step === 'mosaic') {
-          // 显示 Bayer 马赛克：每个像素只有一个颜色通道
-          const colors = ['rgb(' + val + ',0,0)', 'rgb(0,' + val + ',0)', 'rgb(0,0,' + val + ')']
-          ctx.fillStyle = colors[ch]!
-          ctx.fillRect(x, y, pw, pw)
+          if (ch === 0) rr = val
+          else if (ch === 1) gg = val
+          else bb = val
         } else if (step === 'result' || (step === 'interpolating' && animProgress >= 1)) {
-          // 显示完整 RGB
-          const idx = (r * w + c) * 4
-          const rr = demosaiced.data[idx]!
-          const gg = demosaiced.data[idx + 1]!
-          const bb = demosaiced.data[idx + 2]!
-          ctx.fillStyle = `rgb(${rr},${gg},${bb})`
-          ctx.fillRect(x, y, pw, pw)
+          rr = demosaiced.data[idx]!
+          gg = demosaiced.data[idx + 1]!
+          bb = demosaiced.data[idx + 2]!
         } else {
           // 插值动画：逐渐填充缺失通道
-          const idx = (r * w + c) * 4
           const finalR = demosaiced.data[idx]!
           const finalG = demosaiced.data[idx + 1]!
           const finalB = demosaiced.data[idx + 2]!
-
-          // 已有通道保持，缺失通道从 0 渐变到最终值
           const t = animProgress
-          let rr: number, gg: number, bb: number
-          if (ch === 0) { // R 像素
+
+          if (ch === 0) {
             rr = val
             gg = Math.round(finalG * t)
             bb = Math.round(finalB * t)
-          } else if (ch === 1) { // G 像素
+          } else if (ch === 1) {
             rr = Math.round(finalR * t)
             gg = val
             bb = Math.round(finalB * t)
-          } else { // B 像素
+          } else {
             rr = Math.round(finalR * t)
             gg = Math.round(finalG * t)
             bb = val
           }
-          ctx.fillStyle = `rgb(${rr},${gg},${bb})`
-          ctx.fillRect(x, y, pw, pw)
         }
 
-        // 网格线
-        ctx.strokeStyle = 'rgba(255,255,255,0.08)'
-        ctx.lineWidth = 0.5
-        ctx.strokeRect(x, y, pw, pw)
+        small.data[idx] = rr
+        small.data[idx + 1] = gg
+        small.data[idx + 2] = bb
+        small.data[idx + 3] = 255
+      }
+    }
 
-        // 在马赛克模式下标注通道字母
-        if (step === 'mosaic' && pw >= 16) {
-          const labels = ['R', 'G', 'B']
-          ctx.fillStyle = 'rgba(255,255,255,0.5)'
-          ctx.font = '9px monospace'
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(labels[ch]!, x + pw / 2, y + pw / 2)
+    if (pw === 1) {
+      // 100% 缩放：直接 putImageData，无需放大
+      ctx.putImageData(small, 0, 0)
+    } else {
+      // 高倍缩放：先绘制到离屏 canvas，再放大
+      const offCanvas = new OffscreenCanvas(w, h)
+      const offCtx = offCanvas.getContext('2d')!
+      offCtx.putImageData(small, 0, 0)
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(offCanvas, 0, 0, w * pw, h * pw)
+
+      // 高倍率时绘制网格和字母（仅在每像素够大时）
+      if (pw >= 4) {
+        ctx.strokeStyle = 'rgba(128,128,128,0.15)'
+        ctx.lineWidth = 0.5
+        for (let r = 0; r <= h; r++) {
+          ctx.beginPath()
+          ctx.moveTo(0, r * pw)
+          ctx.lineTo(w * pw, r * pw)
+          ctx.stroke()
+        }
+        for (let c = 0; c <= w; c++) {
+          ctx.beginPath()
+          ctx.moveTo(c * pw, 0)
+          ctx.lineTo(c * pw, h * pw)
+          ctx.stroke()
+        }
+      }
+
+      if (step === 'mosaic' && pw >= 16) {
+        const labels = ['R', 'G', 'B']
+        ctx.fillStyle = 'rgba(255,255,255,0.6)'
+        ctx.font = `${Math.floor(pw * 0.5)}px monospace`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        for (let r = 0; r < h; r++) {
+          for (let c = 0; c < w; c++) {
+            const ch = getChannelAt(r, c, pattern)
+            ctx.fillText(labels[ch]!, c * pw + pw / 2, r * pw + pw / 2)
+          }
         }
       }
     }
-  }, [cropBayer, cropX, cropY, step, animProgress, demosaiced])
+  }, [cropBayer, step, animProgress, demosaiced, CROP_SIZE, PIXEL_SIZE])
 
   // 动画循环
   useEffect(() => {
@@ -214,10 +261,9 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
     let newY = Math.round(my * scaleY - CROP_SIZE / 2)
     newX = Math.max(0, Math.min(newX, bayer.width - CROP_SIZE))
     newY = Math.max(0, Math.min(newY, bayer.height - CROP_SIZE))
-    // 强制偶数对齐
     setCropX(newX - (newX % 2))
     setCropY(newY - (newY % 2))
-  }, [bayer])
+  }, [bayer, CROP_SIZE])
 
   const handlePlayDemo = () => {
     setStep('interpolating')
@@ -254,6 +300,22 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
           </select>
         </div>
 
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">缩放</label>
+          <select
+            value={zoomIdx}
+            onChange={(e) => setZoomIdx(parseInt(e.target.value, 10))}
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:border-green-500"
+          >
+            {ZOOM_LEVELS.map((z, i) => (
+              <option key={z.label} value={i}>
+                {z.label}（{z.cropSize}×{z.cropSize}px）
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex gap-2 items-end">
           <button
             onClick={handlePlayDemo}
@@ -270,7 +332,7 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
       </p>
 
       {/* 步骤切换 */}
-      <div className="flex gap-1 bg-gray-900 rounded-lg p-1 self-center">
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 self-center">
         {steps.map((s) => (
           <button
             key={s.id}
@@ -280,8 +342,8 @@ export function DemosaicPlayer({ bayer, fileBaseName: _fileBaseName }: Props) {
             }}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               step === s.id
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-400 hover:text-gray-200'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
             {s.label}
