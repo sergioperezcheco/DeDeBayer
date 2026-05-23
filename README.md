@@ -220,20 +220,21 @@ Push 到 main 即自动部署。
 ### Docker
 
 ```bash
-# 构建镜像
-docker build -t dedebayer .
+# 使用 docker-compose（推荐）
+docker compose up -d
 
-# 运行
-docker run -p 8080:80 dedebayer
+# 或手动构建运行
+docker build -t dedebayer .
+docker run -p 4321:4321 dedebayer
 ```
 
-访问 http://localhost:8080
+访问 http://localhost:4321
 
 也可以直接拉取 GitHub Container Registry 的镜像：
 
 ```bash
 docker pull ghcr.io/sergioperezcheco/dedebayer:latest
-docker run -p 8080:80 ghcr.io/sergioperezcheco/dedebayer:latest
+docker run -p 4321:4321 ghcr.io/sergioperezcheco/dedebayer:latest
 ```
 
 ### 其他平台

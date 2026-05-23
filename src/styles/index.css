@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --color-bayer-red: #e74c3c;
   --color-bayer-green: #2ecc71;
@@ -7,5 +9,9 @@
 }
 
 body {
-  @apply bg-gray-950 text-gray-100 min-h-screen;
+  @apply bg-white text-gray-900 min-h-screen transition-colors duration-300;
+}
+
+body.dark {
+  @apply bg-gray-950 text-gray-100;
 }
