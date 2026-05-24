@@ -1,27 +1,29 @@
 <div align="center">
 
-# 🟥🟩🟩🟦 DeDeBayer
+<img src="public/vite.svg" width="64" height="64" alt="DeDeBayer Logo" />
 
-**交互式 Bayer CFA 解拜耳算法可视化 · Interactive Demosaic Algorithm Visualization**
+# DeDeBayer
 
-从像素级别理解数码相机如何从马赛克传感器数据还原出彩色图像
+**交互式 Bayer CFA 解拜耳算法可视化**
+**Interactive Demosaic Algorithm Visualization**
 
-[![Deploy](https://img.shields.io/badge/Cloudflare%20Pages-deployed-orange?logo=cloudflare)](https://dedebayer.pages.dev)
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://github.com/sergioperezcheco/DeDeBayer/pkgs/container/dedebayer)
+> 从像素级别理解数码相机如何从马赛克传感器数据还原出彩色图像
+
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-dedebayer.pages.dev-green?style=for-the-badge)](https://dedebayer.pages.dev)
+
+[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-deployed-F38020?logo=cloudflare&logoColor=white)](https://dedebayer.pages.dev)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://github.com/sergioperezcheco/DeDeBayer/pkgs/container/dedebayer)
 [![CI](https://github.com/sergioperezcheco/DeDeBayer/actions/workflows/deploy.yml/badge.svg)](https://github.com/sergioperezcheco/DeDeBayer/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-**[在线体验 →](https://dedebayer.pages.dev)** · 纯前端 · 零上传 · 隐私安全
+纯前端 · 零上传 · 隐私安全 · 支持 RAW 文件
 
 ---
 
-<table>
-<tr>
-<td width="33%"><strong>📷 支持 RAW</strong><br/>NEF / CR2 / ARW / DNG 等主流格式</td>
-<td width="33%"><strong>🔬 像素级演示</strong><br/>100%~1600% 缩放，看清每个滤色片</td>
-<td width="33%"><strong>📐 5 种算法</strong><br/>从最近邻到边缘导向，逐步动画对比</td>
-</tr>
-</table>
+| 📷 支持 RAW 格式 | 🔬 像素级演示 | 📐 5 种经典算法 |
+|:---:|:---:|:---:|
+| NEF / CR2 / ARW / DNG | 100% ~ 1600% 缩放 | 最近邻 → 边缘导向 |
+| 自动解析 TIFF 结构 | 看清每个滤色片像素 | 逐步动画对比效果 |
 
 </div>
 
