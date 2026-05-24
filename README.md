@@ -1,10 +1,29 @@
-# DeDeBayer
+<div align="center">
 
-**Bayer 滤色阵列与解拜耳（Demosaic）算法交互式可视化工具**
+# 🟥🟩🟩🟦 DeDeBayer
 
-纯前端实现，所有计算在浏览器本地完成，图片不会上传到任何服务器。
+**交互式 Bayer CFA 解拜耳算法可视化 · Interactive Demosaic Algorithm Visualization**
 
-![DeDeBayer Screenshot](https://img.shields.io/badge/status-active-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+从像素级别理解数码相机如何从马赛克传感器数据还原出彩色图像
+
+[![Deploy](https://img.shields.io/badge/Cloudflare%20Pages-deployed-orange?logo=cloudflare)](https://dedebayer.pages.dev)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://github.com/sergioperezcheco/DeDeBayer/pkgs/container/dedebayer)
+[![CI](https://github.com/sergioperezcheco/DeDeBayer/actions/workflows/deploy.yml/badge.svg)](https://github.com/sergioperezcheco/DeDeBayer/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
+**[在线体验 →](https://dedebayer.pages.dev)** · 纯前端 · 零上传 · 隐私安全
+
+---
+
+<table>
+<tr>
+<td width="33%"><strong>📷 支持 RAW</strong><br/>NEF / CR2 / ARW / DNG 等主流格式</td>
+<td width="33%"><strong>🔬 像素级演示</strong><br/>100%~1600% 缩放，看清每个滤色片</td>
+<td width="33%"><strong>📐 5 种算法</strong><br/>从最近邻到边缘导向，逐步动画对比</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
